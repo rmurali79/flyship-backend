@@ -4,3 +4,4 @@ uploads/
 *.jar
 *.war
 .env
+src/main/resources/application.properties
