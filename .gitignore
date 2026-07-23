@@ -1,0 +1,6 @@
+target/
+uploads/
+*.class
+*.jar
+*.war
+.env
