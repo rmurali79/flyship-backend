@@ -4,4 +4,5 @@ uploads/
 *.jar
 *.war
 .env
-src/main/resources/application.properties
+src/main/resources/stripe.properties
+stripe.properties
