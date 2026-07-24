@@ -6,3 +6,5 @@ uploads/
 .env
 src/main/resources/stripe.properties
 stripe.properties
+server.pid
+server.log
