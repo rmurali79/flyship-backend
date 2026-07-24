@@ -56,6 +56,7 @@ public class ShipmentService {
                         .findByOriginAndDestinationAndStatusAndReachLatestByGreaterThanEqual(
                                 plan.getOrigin(), plan.getDestination(), ShipmentStatus.pending, plan.getEndDate());
                 for (Shipment s : shipments) {
+                    if (exceedsBaggageCapacity(s, plan)) continue;
                     if (seen.add(s.getId())) result.add(shipmentToMap(s));
                 }
             }
@@ -63,6 +64,15 @@ public class ShipmentService {
         }
         return shipmentRepository.findByStatus(ShipmentStatus.pending).stream()
                 .map(this::shipmentToMap).collect(Collectors.toList());
+    }
+
+    // A traveler shouldn't see shipments whose parcel weight exceeds the
+    // baggage capacity they declared for this itinerary. Plans/shipments
+    // without a weight/capacity on file are left unfiltered (nothing to compare).
+    private boolean exceedsBaggageCapacity(Shipment shipment, TravelPlan plan) {
+        return shipment.getWeight() != null
+                && plan.getAvailableBaggageKg() != null
+                && shipment.getWeight().compareTo(plan.getAvailableBaggageKg()) > 0;
     }
 
     public List<Map<String, Object>> getMyShipments(Long userId) {
