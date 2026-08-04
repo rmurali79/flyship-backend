@@ -21,6 +21,7 @@ public class UserController {
     @Autowired private ShipmentRepository shipmentRepository;
     @Autowired private QuoteRepository quoteRepository;
     @Autowired private UserRepository userRepository;
+    @Autowired private ReviewRepository reviewRepository;
 
     @GetMapping("/stats")
     public ResponseEntity<?> getStats(@AuthenticationPrincipal AuthenticatedUser user) {
@@ -68,11 +69,20 @@ public class UserController {
                 }
             }
 
+            List<Object[]> ratingSummaryRows = reviewRepository.getRatingSummary(userId);
+            Object[] ratingSummary = ratingSummaryRows.isEmpty() ? null : ratingSummaryRows.get(0);
+            Double averageRating = ratingSummary != null && ratingSummary[0] != null
+                    ? ((Number) ratingSummary[0]).doubleValue() : null;
+            long reviewCount = ratingSummary != null && ratingSummary[1] != null
+                    ? ((Number) ratingSummary[1]).longValue() : 0L;
+
             Map<String, Object> stats = new HashMap<>();
             stats.put("totalSpends", totalSpends);
             stats.put("totalEarnings", totalEarnings);
             stats.put("itemsShipped", itemsShipped);
             stats.put("tripsDone", tripsDone);
+            stats.put("averageRating", averageRating);
+            stats.put("reviewCount", reviewCount);
 
             return ResponseEntity.ok(stats);
         } catch (RuntimeException e) {

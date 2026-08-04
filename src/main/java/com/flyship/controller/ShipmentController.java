@@ -75,10 +75,10 @@ public class ShipmentController {
                                            @AuthenticationPrincipal AuthenticatedUser user) {
         try {
             ShipmentHistory history = shipmentService.updateStatus(id,
-                    body.get("status"), body.get("description"), body.get("location"));
+                    body.get("status"), body.get("description"), body.get("location"), user.getId());
             return ResponseEntity.ok(history);
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
 

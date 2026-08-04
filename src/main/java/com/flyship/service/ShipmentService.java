@@ -103,13 +103,28 @@ public class ShipmentService {
     }
 
     @Transactional
-    public ShipmentHistory updateStatus(Long shipmentId, String status, String description, String location) {
+    public ShipmentHistory updateStatus(Long shipmentId, String status, String description, String location, Long userId) {
         Shipment shipment = shipmentRepository.findById(shipmentId).orElseThrow(() -> new RuntimeException("Shipment not found"));
-        shipment.setStatus(ShipmentStatus.valueOf(status));
+        ShipmentStatus newStatus = ShipmentStatus.valueOf(status);
+
+        if (newStatus == ShipmentStatus.in_transit || newStatus == ShipmentStatus.delivered) {
+            Quote acceptedQuote = quoteRepository.findByShipmentId(shipmentId).stream()
+                    .filter(q -> q.getStatus() == Quote.QuoteStatus.accepted).findFirst()
+                    .orElseThrow(() -> new RuntimeException("No accepted traveler found for this shipment"));
+            if (!acceptedQuote.getTravelerId().equals(userId))
+                throw new RuntimeException("Only the accepted traveler can update this shipment's status");
+
+            if (newStatus == ShipmentStatus.in_transit && shipment.getStatus() != ShipmentStatus.accepted)
+                throw new RuntimeException("Shipment must be accepted before it can be marked in transit");
+            if (newStatus == ShipmentStatus.delivered && shipment.getStatus() != ShipmentStatus.in_transit)
+                throw new RuntimeException("Shipment must be in transit before it can be marked delivered");
+        }
+
+        shipment.setStatus(newStatus);
         shipmentRepository.save(shipment);
 
         ShipmentHistory history = new ShipmentHistory();
-        history.setShipmentId(shipmentId); history.setStatus(ShipmentStatus.valueOf(status));
+        history.setShipmentId(shipmentId); history.setStatus(newStatus);
         history.setDescription(description); history.setLocation(location);
         return shipmentHistoryRepository.save(history);
     }

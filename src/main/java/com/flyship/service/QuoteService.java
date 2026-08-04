@@ -23,6 +23,7 @@ public class QuoteService {
     @Autowired private UserRepository userRepository;
     @Autowired private WalletLockRepository walletLockRepository;
     @Autowired private WalletService walletService;
+    @Autowired private ReviewRepository reviewRepository;
 
     @Transactional
     public Quote createQuote(Long shipmentId, BigDecimal amount, LocalDate deliveryDate,
@@ -52,7 +53,17 @@ public class QuoteService {
     }
 
     public List<Map<String, Object>> getQuotesByShipment(Long shipmentId) {
-        return quoteRepository.findByShipmentId(shipmentId).stream().map(q -> {
+        List<Quote> quotes = quoteRepository.findByShipmentId(shipmentId);
+
+        List<Long> travelerIds = quotes.stream().map(Quote::getTravelerId).distinct().toList();
+        Map<Long, User> travelersById = userRepository.findAllById(travelerIds).stream()
+                .collect(java.util.stream.Collectors.toMap(User::getId, u -> u));
+
+        Map<Long, Object[]> ratingsByTravelerId = travelerIds.isEmpty() ? Map.of() :
+                reviewRepository.getRatingSummaries(travelerIds).stream()
+                        .collect(java.util.stream.Collectors.toMap(row -> (Long) row[0], row -> row));
+
+        return quotes.stream().map(q -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", q.getId()); map.put("shipment_id", q.getShipmentId());
             map.put("traveler_id", q.getTravelerId()); map.put("amount", q.getAmount());
@@ -60,10 +71,13 @@ public class QuoteService {
             map.put("delivery_date", q.getDeliveryDate()); map.put("status", q.getStatus());
             map.put("withdrawal_reason", q.getWithdrawalReason());
             map.put("createdAt", q.getCreatedAt()); map.put("updatedAt", q.getUpdatedAt());
-            User traveler = userRepository.findById(q.getTravelerId()).orElse(null);
+            User traveler = travelersById.get(q.getTravelerId());
             if (traveler != null) {
                 Map<String, Object> tm = new HashMap<>();
                 tm.put("name", traveler.getName()); tm.put("profile_picture", traveler.getProfilePicture());
+                Object[] rating = ratingsByTravelerId.get(q.getTravelerId());
+                tm.put("average_rating", rating != null && rating[1] != null ? ((Number) rating[1]).doubleValue() : null);
+                tm.put("review_count", rating != null && rating[2] != null ? ((Number) rating[2]).longValue() : 0L);
                 map.put("Traveler", tm);
             }
             return map;
