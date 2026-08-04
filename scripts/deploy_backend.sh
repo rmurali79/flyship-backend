@@ -8,8 +8,15 @@ REGION="us-central1"
 ARTIFACT_REPO="flyship-repo"
 DB_INSTANCE_NAME="flyship-mysql-db"
 DB_USER="logistics_user"
-DB_PASSWORD="7812"
 DB_NAME="logistics_app"
+
+# ── Secrets: read from env vars (CI supplies these via GitHub Actions
+# Secrets), falling back to the values used in every environment so far for
+# local/manual runs. Nothing sensitive should be hardcoded below this point. ──
+DB_PASSWORD="${DB_PASSWORD:-7812}"
+APP_JWT_SECRET="${APP_JWT_SECRET:-supersecretkey}"
+SPRING_MAIL_USERNAME="${SPRING_MAIL_USERNAME:-nwwahjgnp3kst72a@ethereal.email}"
+SPRING_MAIL_PASSWORD="${SPRING_MAIL_PASSWORD:-aEPEuCqXfERHXuhQnE}"
 
 INSTANCE_CONNECTION_NAME="${PROJECT_ID}:${REGION}:${DB_INSTANCE_NAME}"
 BACKEND_IMG="${REGION}-docker.pkg.dev/${PROJECT_ID}/${ARTIFACT_REPO}/backend:latest"
@@ -74,14 +81,14 @@ gcloud run deploy flyship-backend \
     --set-env-vars "SPRING_DATASOURCE_USERNAME=${DB_USER}" \
     --set-env-vars "SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}" \
     --set-env-vars "SPRING_JPA_HIBERNATE_DDL_AUTO=update" \
-    --set-env-vars "APP_JWT_SECRET=supersecretkey" \
+    --set-env-vars "APP_JWT_SECRET=${APP_JWT_SECRET}" \
     --set-env-vars "APP_JWT_EXPIRATION_MS=86400000" \
     --set-env-vars "STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}" \
     --set-env-vars "STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}" \
     --set-env-vars "SPRING_MAIL_HOST=smtp.ethereal.email" \
     --set-env-vars "SPRING_MAIL_PORT=587" \
-    --set-env-vars "SPRING_MAIL_USERNAME=nwwahjgnp3kst72a@ethereal.email" \
-    --set-env-vars "SPRING_MAIL_PASSWORD=aEPEuCqXfERHXuhQnE" \
+    --set-env-vars "SPRING_MAIL_USERNAME=${SPRING_MAIL_USERNAME}" \
+    --set-env-vars "SPRING_MAIL_PASSWORD=${SPRING_MAIL_PASSWORD}" \
     --set-env-vars "APP_UPLOAD_DIR=/tmp/uploads" \
     --set-env-vars "APP_GCS_BUCKET=peerpost-v2-uploads" \
     --add-cloudsql-instances ${INSTANCE_CONNECTION_NAME}

@@ -1,0 +1,31 @@
+name: CI (Linear-triggered)
+
+# Fired by the linear-webhook-bridge Cloud Function when a Linear issue whose
+# ID prefixes a branch in this repo moves to "In Progress". Validates the
+# branch builds — no deploy here; that only happens on merge to main
+# (see deploy.yml), after a human-reviewed PR.
+on:
+  repository_dispatch:
+    types: [linear-in-progress]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report which issue/branch triggered this
+        run: echo "Linear issue ${{ github.event.client_payload.issue }} -> branch ${{ github.event.client_payload.branch }}"
+
+      - name: Checkout dispatched branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.branch }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Compile
+        run: mvn -B compile
