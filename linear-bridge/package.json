@@ -1,0 +1,15 @@
+{
+  "name": "linear-webhook-bridge",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "functions-framework --target=linearWebhookBridge"
+  },
+  "dependencies": {
+    "@google-cloud/functions-framework": "^3.4.0"
+  }
+}
