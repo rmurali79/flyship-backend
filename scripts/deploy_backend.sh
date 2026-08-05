@@ -67,7 +67,7 @@ if ! gcloud artifacts repositories describe $ARTIFACT_REPO --location=$REGION --
 fi
 
 echo "--> Building Backend Image..."
-gcloud builds submit --tag $BACKEND_IMG --project $PROJECT_ID
+gcloud builds submit --tag $BACKEND_IMG --project $PROJECT_ID --suppress-logs
 
 echo "--> Deploying Backend to Cloud Run..."
 gcloud run deploy flyship-backend \
