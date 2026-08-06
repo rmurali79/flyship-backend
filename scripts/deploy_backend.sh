@@ -67,7 +67,16 @@ if ! gcloud artifacts repositories describe $ARTIFACT_REPO --location=$REGION --
 fi
 
 echo "--> Building Backend Image..."
-gcloud builds submit --tag $BACKEND_IMG --project $PROJECT_ID --suppress-logs
+BUILD_ID=$(gcloud builds submit --tag $BACKEND_IMG --project $PROJECT_ID --async --format="value(id)")
+echo "--> Build $BUILD_ID submitted, polling for completion..."
+while true; do
+    BUILD_STATUS=$(gcloud builds describe $BUILD_ID --project $PROJECT_ID --format="value(status)")
+    case "$BUILD_STATUS" in
+        SUCCESS) echo "--> Build succeeded."; break ;;
+        WORKING|QUEUED) sleep 10 ;;
+        *) echo "Build failed with status: $BUILD_STATUS"; exit 1 ;;
+    esac
+done
 
 echo "--> Deploying Backend to Cloud Run..."
 gcloud run deploy flyship-backend \
