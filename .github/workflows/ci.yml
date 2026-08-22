@@ -4,9 +4,16 @@ name: CI (Linear-triggered)
 # ID prefixes a branch in this repo moves to "In Progress". Validates the
 # branch builds — no deploy here; that only happens on merge to main
 # (see deploy.yml), after a human-reviewed PR.
+#
+# Also fires directly on push to any Linear-ID-prefixed branch (e.g. from the
+# build:claude routine, which pushes the branch only after the issue is
+# already "In Progress", so the repository_dispatch above can otherwise miss
+# it). This is deterministic and independent of Linear webhook timing.
 on:
   repository_dispatch:
     types: [linear-in-progress]
+  push:
+    branches: ['FLY-*']
 
 jobs:
   build:
