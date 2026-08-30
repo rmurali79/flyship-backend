@@ -125,6 +125,9 @@ public class UserController {
             if (body.containsKey("mobile_number")) {
                 user.setMobileNumber(body.get("mobile_number"));
             }
+            if (body.containsKey("role") && body.get("role") != null && !body.get("role").isBlank()) {
+                user.setRole(User.UserRole.valueOf(body.get("role")));
+            }
             userRepository.save(user);
 
             Map<String, Object> result = new HashMap<>();
