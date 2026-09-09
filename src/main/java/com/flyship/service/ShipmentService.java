@@ -24,6 +24,7 @@ public class ShipmentService {
     @Autowired private TravelPlanRepository travelPlanRepository;
     @Autowired private WalletService walletService;
     @Autowired private EmailService emailService;
+    @Autowired private NotificationService notificationService;
 
     @Transactional
     public Shipment createShipment(Shipment shipment, Long userId, String userRole) {
@@ -136,12 +137,24 @@ public class ShipmentService {
     }
 
     private void notifyStatusChange(Shipment shipment, Long travelerId, String status) {
-        userRepository.findById(shipment.getShipperId()).ifPresent(shipper ->
-                emailService.sendShipmentStatusChangeNotification(shipper.getEmail(), shipment.getId(),
-                        shipment.getOrigin(), shipment.getDestination(), status));
-        userRepository.findById(travelerId).ifPresent(traveler ->
-                emailService.sendShipmentStatusChangeNotification(traveler.getEmail(), shipment.getId(),
-                        shipment.getOrigin(), shipment.getDestination(), status));
+        userRepository.findById(shipment.getShipperId()).ifPresent(shipper -> {
+            emailService.sendShipmentStatusChangeNotification(shipper.getEmail(), shipment.getId(),
+                    shipment.getOrigin(), shipment.getDestination(), status);
+            notifyStatusChangeInApp(shipper.getId(), shipment, status);
+        });
+        userRepository.findById(travelerId).ifPresent(traveler -> {
+            emailService.sendShipmentStatusChangeNotification(traveler.getEmail(), shipment.getId(),
+                    shipment.getOrigin(), shipment.getDestination(), status);
+            notifyStatusChangeInApp(traveler.getId(), shipment, status);
+        });
+    }
+
+    private void notifyStatusChangeInApp(Long userId, Shipment shipment, String status) {
+        notificationService.create(userId, Notification.NotificationType.shipment_status_change,
+                "Shipment #" + shipment.getId() + " status update: " + status,
+                String.format("Your shipment from %s to %s is now %s.",
+                        shipment.getOrigin(), shipment.getDestination(), status),
+                shipment.getId());
     }
 
     @Transactional
