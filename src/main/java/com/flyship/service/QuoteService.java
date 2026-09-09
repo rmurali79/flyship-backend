@@ -25,6 +25,7 @@ public class QuoteService {
     @Autowired private WalletService walletService;
     @Autowired private ReviewRepository reviewRepository;
     @Autowired private EmailService emailService;
+    @Autowired private NotificationService notificationService;
 
     @Transactional
     public Quote createQuote(Long shipmentId, BigDecimal amount, LocalDate deliveryDate,
@@ -52,9 +53,15 @@ public class QuoteService {
         }
 
         Quote savedQuote = quote;
-        userRepository.findById(shipment.getShipperId()).ifPresent(shipper ->
-                emailService.sendNewQuoteNotification(shipper.getEmail(), shipment.getId(),
-                        shipment.getOrigin(), shipment.getDestination(), savedQuote.getAmount(), savedQuote.getCurrency()));
+        userRepository.findById(shipment.getShipperId()).ifPresent(shipper -> {
+            emailService.sendNewQuoteNotification(shipper.getEmail(), shipment.getId(),
+                    shipment.getOrigin(), shipment.getDestination(), savedQuote.getAmount(), savedQuote.getCurrency());
+            notificationService.create(shipper.getId(), Notification.NotificationType.new_quote,
+                    "New quote received for your shipment #" + shipment.getId(),
+                    String.format("You've received a new quote of %s %s for your shipment from %s to %s.",
+                            savedQuote.getCurrency(), savedQuote.getAmount(), shipment.getOrigin(), shipment.getDestination()),
+                    shipment.getId());
+        });
 
         return quote;
     }
@@ -118,9 +125,15 @@ public class QuoteService {
         quote.setStatus(QuoteStatus.accepted); quoteRepository.save(quote);
         shipment.setStatus(Shipment.ShipmentStatus.accepted); shipmentRepository.save(shipment);
 
-        userRepository.findById(quote.getTravelerId()).ifPresent(traveler ->
-                emailService.sendQuoteAcceptedNotification(traveler.getEmail(), shipment.getId(),
-                        shipment.getOrigin(), shipment.getDestination(), quote.getAmount(), quote.getCurrency()));
+        userRepository.findById(quote.getTravelerId()).ifPresent(traveler -> {
+            emailService.sendQuoteAcceptedNotification(traveler.getEmail(), shipment.getId(),
+                    shipment.getOrigin(), shipment.getDestination(), quote.getAmount(), quote.getCurrency());
+            notificationService.create(traveler.getId(), Notification.NotificationType.quote_accepted,
+                    "Your quote was accepted for shipment #" + shipment.getId(),
+                    String.format("Your quote of %s %s for the shipment from %s to %s has been accepted.",
+                            quote.getCurrency(), quote.getAmount(), shipment.getOrigin(), shipment.getDestination()),
+                    shipment.getId());
+        });
 
         // Reject other quotes and release locks
         List<Quote> otherQuotes = quoteRepository.findByShipmentIdAndIdNotAndStatus(shipment.getId(), quote.getId(), QuoteStatus.pending);

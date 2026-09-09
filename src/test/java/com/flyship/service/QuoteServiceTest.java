@@ -1,5 +1,6 @@
 package com.flyship.service;
 
+import com.flyship.entity.Notification;
 import com.flyship.entity.Quote;
 import com.flyship.entity.Shipment;
 import com.flyship.entity.User;
@@ -30,6 +31,7 @@ class QuoteServiceTest {
     private WalletService walletService;
     private ReviewRepository reviewRepository;
     private EmailService emailService;
+    private NotificationService notificationService;
     private QuoteService quoteService;
 
     private Shipment shipment;
@@ -44,6 +46,7 @@ class QuoteServiceTest {
         walletService = Mockito.mock(WalletService.class);
         reviewRepository = Mockito.mock(ReviewRepository.class);
         emailService = Mockito.mock(EmailService.class);
+        notificationService = Mockito.mock(NotificationService.class);
 
         quoteService = new QuoteService();
         ReflectionTestUtils.setField(quoteService, "quoteRepository", quoteRepository);
@@ -53,6 +56,7 @@ class QuoteServiceTest {
         ReflectionTestUtils.setField(quoteService, "walletService", walletService);
         ReflectionTestUtils.setField(quoteService, "reviewRepository", reviewRepository);
         ReflectionTestUtils.setField(quoteService, "emailService", emailService);
+        ReflectionTestUtils.setField(quoteService, "notificationService", notificationService);
 
         shipment = new Shipment();
         shipment.setId(10L);
@@ -83,6 +87,7 @@ class QuoteServiceTest {
         verify(emailService).sendNewQuoteNotification(eq("shipper@example.com"), eq(10L), eq("NYC"), eq("LON"),
                 amountCaptor.capture(), eq("USD"));
         assertEquals(0, new BigDecimal("50.00").compareTo(amountCaptor.getValue()));
+        verify(notificationService).create(eq(1L), eq(Notification.NotificationType.new_quote), any(), any(), eq(10L));
     }
 
     @Test
@@ -92,6 +97,7 @@ class QuoteServiceTest {
         quoteService.createQuote(10L, new BigDecimal("50.00"), LocalDate.now().plusDays(5), "USD", "hi", 2L);
 
         verify(emailService, never()).sendNewQuoteNotification(any(), any(), any(), any(), any(), any());
+        verify(notificationService, never()).create(any(), any(), any(), any(), any());
     }
 
     @Test
@@ -121,5 +127,6 @@ class QuoteServiceTest {
         verify(emailService).sendQuoteAcceptedNotification(eq("traveler@example.com"), eq(10L), eq("NYC"), eq("LON"),
                 eq(new BigDecimal("75.00")), eq("USD"));
         verify(emailService, never()).sendNewQuoteNotification(any(), any(), any(), any(), any(), any());
+        verify(notificationService).create(eq(3L), eq(Notification.NotificationType.quote_accepted), any(), any(), eq(10L));
     }
 }

@@ -1,5 +1,6 @@
 package com.flyship.service;
 
+import com.flyship.entity.Notification;
 import com.flyship.entity.Quote;
 import com.flyship.entity.Shipment;
 import com.flyship.entity.ShipmentHistory;
@@ -27,6 +28,7 @@ class ShipmentServiceTest {
     private TravelPlanRepository travelPlanRepository;
     private WalletService walletService;
     private EmailService emailService;
+    private NotificationService notificationService;
     private ShipmentService shipmentService;
 
     private Shipment shipment;
@@ -42,6 +44,7 @@ class ShipmentServiceTest {
         travelPlanRepository = Mockito.mock(TravelPlanRepository.class);
         walletService = Mockito.mock(WalletService.class);
         emailService = Mockito.mock(EmailService.class);
+        notificationService = Mockito.mock(NotificationService.class);
 
         shipmentService = new ShipmentService();
         ReflectionTestUtils.setField(shipmentService, "shipmentRepository", shipmentRepository);
@@ -52,6 +55,7 @@ class ShipmentServiceTest {
         ReflectionTestUtils.setField(shipmentService, "travelPlanRepository", travelPlanRepository);
         ReflectionTestUtils.setField(shipmentService, "walletService", walletService);
         ReflectionTestUtils.setField(shipmentService, "emailService", emailService);
+        ReflectionTestUtils.setField(shipmentService, "notificationService", notificationService);
 
         shipment = new Shipment();
         shipment.setId(10L);
@@ -86,6 +90,8 @@ class ShipmentServiceTest {
                 eq("shipper@example.com"), eq(10L), eq("NYC"), eq("LON"), eq("in_transit"));
         verify(emailService).sendShipmentStatusChangeNotification(
                 eq("traveler@example.com"), eq(10L), eq("NYC"), eq("LON"), eq("in_transit"));
+        verify(notificationService).create(eq(1L), eq(Notification.NotificationType.shipment_status_change), any(), any(), eq(10L));
+        verify(notificationService).create(eq(3L), eq(Notification.NotificationType.shipment_status_change), any(), any(), eq(10L));
     }
 
     @Test
@@ -108,5 +114,6 @@ class ShipmentServiceTest {
         shipmentService.updateStatus(10L, "accepted", null, null, 1L);
 
         verify(emailService, never()).sendShipmentStatusChangeNotification(any(), any(), any(), any(), any());
+        verify(notificationService, never()).create(any(), any(), any(), any(), any());
     }
 }
