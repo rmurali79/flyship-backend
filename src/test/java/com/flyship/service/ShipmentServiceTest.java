@@ -1,0 +1,112 @@
+package com.flyship.service;
+
+import com.flyship.entity.Quote;
+import com.flyship.entity.Shipment;
+import com.flyship.entity.ShipmentHistory;
+import com.flyship.entity.User;
+import com.flyship.repository.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.List;
+import java.util.Optional;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+class ShipmentServiceTest {
+
+    private ShipmentRepository shipmentRepository;
+    private UserRepository userRepository;
+    private QuoteRepository quoteRepository;
+    private ShipmentHistoryRepository shipmentHistoryRepository;
+    private WalletLockRepository walletLockRepository;
+    private TravelPlanRepository travelPlanRepository;
+    private WalletService walletService;
+    private EmailService emailService;
+    private ShipmentService shipmentService;
+
+    private Shipment shipment;
+    private Quote acceptedQuote;
+
+    @BeforeEach
+    void setUp() {
+        shipmentRepository = Mockito.mock(ShipmentRepository.class);
+        userRepository = Mockito.mock(UserRepository.class);
+        quoteRepository = Mockito.mock(QuoteRepository.class);
+        shipmentHistoryRepository = Mockito.mock(ShipmentHistoryRepository.class);
+        walletLockRepository = Mockito.mock(WalletLockRepository.class);
+        travelPlanRepository = Mockito.mock(TravelPlanRepository.class);
+        walletService = Mockito.mock(WalletService.class);
+        emailService = Mockito.mock(EmailService.class);
+
+        shipmentService = new ShipmentService();
+        ReflectionTestUtils.setField(shipmentService, "shipmentRepository", shipmentRepository);
+        ReflectionTestUtils.setField(shipmentService, "userRepository", userRepository);
+        ReflectionTestUtils.setField(shipmentService, "quoteRepository", quoteRepository);
+        ReflectionTestUtils.setField(shipmentService, "shipmentHistoryRepository", shipmentHistoryRepository);
+        ReflectionTestUtils.setField(shipmentService, "walletLockRepository", walletLockRepository);
+        ReflectionTestUtils.setField(shipmentService, "travelPlanRepository", travelPlanRepository);
+        ReflectionTestUtils.setField(shipmentService, "walletService", walletService);
+        ReflectionTestUtils.setField(shipmentService, "emailService", emailService);
+
+        shipment = new Shipment();
+        shipment.setId(10L);
+        shipment.setShipperId(1L);
+        shipment.setOrigin("NYC");
+        shipment.setDestination("LON");
+        shipment.setStatus(Shipment.ShipmentStatus.accepted);
+
+        acceptedQuote = new Quote();
+        acceptedQuote.setId(200L);
+        acceptedQuote.setShipmentId(10L);
+        acceptedQuote.setTravelerId(3L);
+        acceptedQuote.setStatus(Quote.QuoteStatus.accepted);
+
+        User shipper = new User();
+        shipper.setId(1L); shipper.setName("Sam Shipper"); shipper.setEmail("shipper@example.com");
+        User traveler = new User();
+        traveler.setId(3L); traveler.setName("Tom Traveler"); traveler.setEmail("traveler@example.com");
+
+        when(shipmentRepository.findById(10L)).thenReturn(Optional.of(shipment));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(shipper));
+        when(userRepository.findById(3L)).thenReturn(Optional.of(traveler));
+        when(quoteRepository.findByShipmentId(10L)).thenReturn(List.of(acceptedQuote));
+        when(shipmentHistoryRepository.save(any(ShipmentHistory.class))).thenAnswer(inv -> inv.getArgument(0));
+    }
+
+    @Test
+    void updateStatus_toInTransit_notifiesShipperAndTraveler() {
+        shipmentService.updateStatus(10L, "in_transit", "left origin", "NYC", 3L);
+
+        verify(emailService).sendShipmentStatusChangeNotification(
+                eq("shipper@example.com"), eq(10L), eq("NYC"), eq("LON"), eq("in_transit"));
+        verify(emailService).sendShipmentStatusChangeNotification(
+                eq("traveler@example.com"), eq(10L), eq("NYC"), eq("LON"), eq("in_transit"));
+    }
+
+    @Test
+    void updateStatus_toDelivered_notifiesShipperAndTraveler() {
+        shipment.setStatus(Shipment.ShipmentStatus.in_transit);
+
+        shipmentService.updateStatus(10L, "delivered", "arrived", "LON", 3L);
+
+        verify(emailService).sendShipmentStatusChangeNotification(
+                eq("shipper@example.com"), eq(10L), eq("NYC"), eq("LON"), eq("delivered"));
+        verify(emailService).sendShipmentStatusChangeNotification(
+                eq("traveler@example.com"), eq(10L), eq("NYC"), eq("LON"), eq("delivered"));
+    }
+
+    @Test
+    void updateStatus_forOtherStatuses_doesNotNotify() {
+        when(shipmentRepository.findById(10L)).thenReturn(Optional.of(shipment));
+        shipment.setStatus(Shipment.ShipmentStatus.pending);
+
+        shipmentService.updateStatus(10L, "accepted", null, null, 1L);
+
+        verify(emailService, never()).sendShipmentStatusChangeNotification(any(), any(), any(), any(), any());
+    }
+}

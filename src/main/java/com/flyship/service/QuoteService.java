@@ -24,6 +24,7 @@ public class QuoteService {
     @Autowired private WalletLockRepository walletLockRepository;
     @Autowired private WalletService walletService;
     @Autowired private ReviewRepository reviewRepository;
+    @Autowired private EmailService emailService;
 
     @Transactional
     public Quote createQuote(Long shipmentId, BigDecimal amount, LocalDate deliveryDate,
@@ -49,6 +50,12 @@ public class QuoteService {
         if (amount != null && amount.compareTo(BigDecimal.ZERO) > 0) {
             walletService.lockFunds(travelerId, curr, amount, LockType.quote_collateral, quote.getId());
         }
+
+        Quote savedQuote = quote;
+        userRepository.findById(shipment.getShipperId()).ifPresent(shipper ->
+                emailService.sendNewQuoteNotification(shipper.getEmail(), shipment.getId(),
+                        shipment.getOrigin(), shipment.getDestination(), savedQuote.getAmount(), savedQuote.getCurrency()));
+
         return quote;
     }
 
@@ -110,6 +117,10 @@ public class QuoteService {
 
         quote.setStatus(QuoteStatus.accepted); quoteRepository.save(quote);
         shipment.setStatus(Shipment.ShipmentStatus.accepted); shipmentRepository.save(shipment);
+
+        userRepository.findById(quote.getTravelerId()).ifPresent(traveler ->
+                emailService.sendQuoteAcceptedNotification(traveler.getEmail(), shipment.getId(),
+                        shipment.getOrigin(), shipment.getDestination(), quote.getAmount(), quote.getCurrency()));
 
         // Reject other quotes and release locks
         List<Quote> otherQuotes = quoteRepository.findByShipmentIdAndIdNotAndStatus(shipment.getId(), quote.getId(), QuoteStatus.pending);

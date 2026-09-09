@@ -23,6 +23,7 @@ public class ShipmentService {
     @Autowired private WalletLockRepository walletLockRepository;
     @Autowired private TravelPlanRepository travelPlanRepository;
     @Autowired private WalletService walletService;
+    @Autowired private EmailService emailService;
 
     @Transactional
     public Shipment createShipment(Shipment shipment, Long userId, String userRole) {
@@ -107,8 +108,9 @@ public class ShipmentService {
         Shipment shipment = shipmentRepository.findById(shipmentId).orElseThrow(() -> new RuntimeException("Shipment not found"));
         ShipmentStatus newStatus = ShipmentStatus.valueOf(status);
 
+        Quote acceptedQuote = null;
         if (newStatus == ShipmentStatus.in_transit || newStatus == ShipmentStatus.delivered) {
-            Quote acceptedQuote = quoteRepository.findByShipmentId(shipmentId).stream()
+            acceptedQuote = quoteRepository.findByShipmentId(shipmentId).stream()
                     .filter(q -> q.getStatus() == Quote.QuoteStatus.accepted).findFirst()
                     .orElseThrow(() -> new RuntimeException("No accepted traveler found for this shipment"));
             if (!acceptedQuote.getTravelerId().equals(userId))
@@ -123,10 +125,23 @@ public class ShipmentService {
         shipment.setStatus(newStatus);
         shipmentRepository.save(shipment);
 
+        if (acceptedQuote != null) {
+            notifyStatusChange(shipment, acceptedQuote.getTravelerId(), newStatus.name());
+        }
+
         ShipmentHistory history = new ShipmentHistory();
         history.setShipmentId(shipmentId); history.setStatus(newStatus);
         history.setDescription(description); history.setLocation(location);
         return shipmentHistoryRepository.save(history);
+    }
+
+    private void notifyStatusChange(Shipment shipment, Long travelerId, String status) {
+        userRepository.findById(shipment.getShipperId()).ifPresent(shipper ->
+                emailService.sendShipmentStatusChangeNotification(shipper.getEmail(), shipment.getId(),
+                        shipment.getOrigin(), shipment.getDestination(), status));
+        userRepository.findById(travelerId).ifPresent(traveler ->
+                emailService.sendShipmentStatusChangeNotification(traveler.getEmail(), shipment.getId(),
+                        shipment.getOrigin(), shipment.getDestination(), status));
     }
 
     @Transactional
