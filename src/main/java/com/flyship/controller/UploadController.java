@@ -16,10 +16,16 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/upload")
 public class UploadController {
+
+    private static final Set<String> ALLOWED_PROFILE_PICTURE_TYPES =
+            Set.of("image/jpeg", "image/png", "image/gif", "image/webp");
+
+    private static final long MAX_PROFILE_PICTURE_SIZE_BYTES = 5L * 1024 * 1024;
 
     @Value("${app.upload.dir:#{null}}")
     private String uploadDir;
@@ -40,6 +46,10 @@ public class UploadController {
             }
 
             if (profilePicture != null && !profilePicture.isEmpty()) {
+                String validationError = validateProfilePicture(profilePicture);
+                if (validationError != null) {
+                    return ResponseEntity.badRequest().body(Map.of("error", validationError));
+                }
                 String filename = System.currentTimeMillis() + "-" + sanitize(profilePicture.getOriginalFilename());
                 response.put("profile_url", upload(profilePicture, "profile/" + filename));
             }
@@ -86,6 +96,17 @@ public class UploadController {
         Files.createDirectories(dir);
         file.transferTo(Paths.get(uploadDir, objectName).toFile());
         return "/uploads/" + objectName;
+    }
+
+    private String validateProfilePicture(MultipartFile file) {
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_PROFILE_PICTURE_TYPES.contains(contentType.toLowerCase())) {
+            return "Profile picture must be a JPEG, PNG, GIF, or WEBP image";
+        }
+        if (file.getSize() > MAX_PROFILE_PICTURE_SIZE_BYTES) {
+            return "Profile picture must be smaller than 5MB";
+        }
+        return null;
     }
 
     private String sanitize(String name) {
