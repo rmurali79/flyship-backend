@@ -3,12 +3,14 @@ package com.flyship.service;
 import com.flyship.entity.Notification;
 import com.flyship.entity.Notification.NotificationType;
 import com.flyship.repository.NotificationRepository;
+import jakarta.persistence.Column;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Optional;
 
@@ -91,5 +93,13 @@ class NotificationServiceTest {
         when(notificationRepository.countByUserIdAndReadFalse(5L)).thenReturn(3L);
 
         assertEquals(3L, notificationService.getUnreadCount(5L));
+    }
+
+    @Test
+    void readField_mapsToIsReadColumn_notReservedMariaDbWord() throws NoSuchFieldException {
+        Field readField = Notification.class.getDeclaredField("read");
+        Column column = readField.getAnnotation(Column.class);
+
+        assertEquals("is_read", column.name());
     }
 }

@@ -15,7 +15,7 @@ public class Notification {
     @Column(nullable = false) private String title;
     @Column(columnDefinition = "TEXT") private String message;
     @JsonProperty("shipment_id") @Column(name = "shipment_id") private Long shipmentId;
-    @Column(nullable = false) private boolean read = false;
+    @Column(name = "is_read", nullable = false) private boolean read = false;
     @Column(name = "created_at", updatable = false) private LocalDateTime createdAt;
 
     @PrePersist protected void onCreate() { createdAt = LocalDateTime.now(); }

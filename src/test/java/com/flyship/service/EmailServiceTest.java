@@ -5,13 +5,16 @@ import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.mail.MailAuthenticationException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.util.Properties;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -54,5 +57,26 @@ class EmailServiceTest {
 
         assertTrue(result);
         verify(mailSender).send(Mockito.any(MimeMessage.class));
+    }
+
+    @Test
+    void sendOTP_returnsFalseInsteadOfThrowingWhenSmtpAuthFails() {
+        doThrow(new MailAuthenticationException("Authentication failed"))
+                .when(mailSender).send(Mockito.any(MimeMessage.class));
+
+        boolean result = emailService.sendOTP("user@example.com", "123456");
+
+        assertFalse(result);
+    }
+
+    @Test
+    void sendNewQuoteNotification_returnsFalseInsteadOfThrowingWhenSmtpAuthFails() {
+        doThrow(new MailAuthenticationException("Authentication failed"))
+                .when(mailSender).send(Mockito.any(MimeMessage.class));
+
+        boolean result = emailService.sendNewQuoteNotification(
+                "shipper@example.com", 10L, "NYC", "LON", new BigDecimal("50.00"), "USD");
+
+        assertFalse(result);
     }
 }
