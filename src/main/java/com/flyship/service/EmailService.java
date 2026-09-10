@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.mail.MailException;
 
 import java.math.BigDecimal;
 
@@ -38,7 +39,7 @@ public class EmailService {
             mailSender.send(message);
             log.info("OTP email sent successfully to {}", email);
             return true;
-        } catch (MessagingException e) {
+        } catch (MessagingException | MailException e) {
             log.error("Error sending email: ", e);
             return false;
         }
@@ -96,7 +97,7 @@ public class EmailService {
             mailSender.send(message);
             log.info("Notification email sent successfully to {}", toEmail);
             return true;
-        } catch (MessagingException e) {
+        } catch (MessagingException | MailException e) {
             log.error("Error sending notification email: ", e);
             return false;
         }
