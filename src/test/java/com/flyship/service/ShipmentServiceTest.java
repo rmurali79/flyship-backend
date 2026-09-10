@@ -1,5 +1,6 @@
 package com.flyship.service;
 
+import com.flyship.entity.DisputeReason;
 import com.flyship.entity.Notification;
 import com.flyship.entity.Quote;
 import com.flyship.entity.Shipment;
@@ -14,6 +15,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -115,5 +117,28 @@ class ShipmentServiceTest {
 
         verify(emailService, never()).sendShipmentStatusChangeNotification(any(), any(), any(), any(), any());
         verify(notificationService, never()).create(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void deleteShipment_pending_storesCategorizedReasonAndOptionalDetail() {
+        shipment.setStatus(Shipment.ShipmentStatus.pending);
+        when(quoteRepository.findByShipmentIdAndStatusNot(eq(10L), any())).thenReturn(List.of());
+
+        shipmentService.deleteShipment(10L, 1L, DisputeReason.item_lost, "Package went missing at the depot");
+
+        assertEquals(DisputeReason.item_lost, shipment.getCancellationReasonCategory());
+        assertEquals("Package went missing at the depot", shipment.getCancellationReason());
+        assertEquals(Shipment.ShipmentStatus.deleted, shipment.getStatus());
+    }
+
+    @Test
+    void deleteShipment_withoutOptionalDetail_storesCategoryOnly() {
+        shipment.setStatus(Shipment.ShipmentStatus.pending);
+        when(quoteRepository.findByShipmentIdAndStatusNot(eq(10L), any())).thenReturn(List.of());
+
+        shipmentService.deleteShipment(10L, 1L, DisputeReason.schedule_change, null);
+
+        assertEquals(DisputeReason.schedule_change, shipment.getCancellationReasonCategory());
+        assertEquals(null, shipment.getCancellationReason());
     }
 }

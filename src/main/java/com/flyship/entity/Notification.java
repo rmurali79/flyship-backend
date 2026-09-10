@@ -31,5 +31,5 @@ public class Notification {
     public boolean isRead() { return read; } public void setRead(boolean v) { this.read = v; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 
-    public enum NotificationType { new_quote, quote_accepted, shipment_status_change }
+    public enum NotificationType { new_quote, quote_accepted, shipment_status_change, dispute_filed, dispute_resolved }
 }

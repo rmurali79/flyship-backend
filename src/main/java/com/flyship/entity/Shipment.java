@@ -72,8 +72,10 @@ public class Shipment {
     @JsonIgnore public User getShipper() { return shipper; }
 
     @JsonProperty("cancellation_reason") @Column(name = "cancellation_reason", columnDefinition = "TEXT") private String cancellationReason;
+    @JsonProperty("cancellation_reason_category") @Enumerated(EnumType.STRING) @Column(name = "cancellation_reason_category") private DisputeReason cancellationReasonCategory;
 
     public String getCancellationReason() { return cancellationReason; } public void setCancellationReason(String v) { this.cancellationReason = v; }
+    public DisputeReason getCancellationReasonCategory() { return cancellationReasonCategory; } public void setCancellationReasonCategory(DisputeReason v) { this.cancellationReasonCategory = v; }
 
     public enum ShipmentStatus { pending, accepted, in_transit, delivered, cancelled, deleted }
     public enum ShipmentArrangement { self_handover, need_collection }

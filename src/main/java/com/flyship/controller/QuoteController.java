@@ -1,5 +1,6 @@
 package com.flyship.controller;
 
+import com.flyship.entity.DisputeReason;
 import com.flyship.entity.Quote;
 import com.flyship.security.AuthenticatedUser;
 import com.flyship.service.QuoteService;
@@ -67,9 +68,17 @@ public class QuoteController {
                                             @RequestBody Map<String, String> body,
                                             @AuthenticationPrincipal AuthenticatedUser user) {
         try {
-            String reason = body.get("reason");
-            if (reason == null || reason.isBlank()) return ResponseEntity.badRequest().body(Map.of("error", "Reason is required"));
-            return ResponseEntity.ok(quoteService.withdrawQuote(id, user.getId(), reason));
+            String reasonCategoryRaw = body.get("reason_category");
+            if (reasonCategoryRaw == null || reasonCategoryRaw.isBlank())
+                return ResponseEntity.badRequest().body(Map.of("error", "reason_category is required"));
+            DisputeReason reasonCategory;
+            try {
+                reasonCategory = DisputeReason.valueOf(reasonCategoryRaw);
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Invalid reason_category: " + reasonCategoryRaw));
+            }
+            String reasonDetail = body.get("reason");
+            return ResponseEntity.ok(quoteService.withdrawQuote(id, user.getId(), reasonCategory, reasonDetail));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }

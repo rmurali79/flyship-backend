@@ -196,7 +196,7 @@ public class ShipmentService {
     }
 
     @Transactional
-    public Map<String, String> deleteShipment(Long shipmentId, Long userId, String reason) {
+    public Map<String, String> deleteShipment(Long shipmentId, Long userId, DisputeReason reasonCategory, String reasonDetail) {
         Shipment shipment = shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new RuntimeException("Shipment not found"));
         if (!shipment.getShipperId().equals(userId)) throw new RuntimeException("Unauthorized");
@@ -234,13 +234,15 @@ public class ShipmentService {
         }
 
         shipment.setStatus(ShipmentStatus.deleted);
-        shipment.setCancellationReason(reason);
+        shipment.setCancellationReasonCategory(reasonCategory);
+        shipment.setCancellationReason(reasonDetail);
         shipmentRepository.save(shipment);
 
         ShipmentHistory history = new ShipmentHistory();
         history.setShipmentId(shipmentId);
         history.setStatus(ShipmentStatus.deleted);
-        history.setDescription("Shipment deleted by shipper: " + reason);
+        history.setDescription("Shipment deleted by shipper: " + reasonCategory
+                + (reasonDetail != null && !reasonDetail.isBlank() ? " - " + reasonDetail : ""));
         shipmentHistoryRepository.save(history);
 
         return Map.of("message", "Shipment deleted");
@@ -262,6 +264,7 @@ public class ShipmentService {
         map.put("status", s.getStatus()); map.put("reach_latest_by", s.getReachLatestBy());
         map.put("escrow_amount", s.getEscrowAmount()); map.put("escrow_currency", s.getEscrowCurrency());
         map.put("cancellation_reason", s.getCancellationReason());
+        map.put("cancellation_reason_category", s.getCancellationReasonCategory());
         map.put("createdAt", s.getCreatedAt()); map.put("updatedAt", s.getUpdatedAt());
         User shipper = userRepository.findById(s.getShipperId()).orElse(null);
         if (shipper != null) map.put("Shipper", Map.of("name", shipper.getName()));

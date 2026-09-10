@@ -43,8 +43,10 @@ public class Quote {
     @JsonIgnore public Shipment getShipment() { return shipment; }
 
     @JsonProperty("withdrawal_reason") @Column(name = "withdrawal_reason", columnDefinition = "TEXT") private String withdrawalReason;
+    @JsonProperty("withdrawal_reason_category") @Enumerated(EnumType.STRING) @Column(name = "withdrawal_reason_category") private DisputeReason withdrawalReasonCategory;
 
     public String getWithdrawalReason() { return withdrawalReason; } public void setWithdrawalReason(String v) { this.withdrawalReason = v; }
+    public DisputeReason getWithdrawalReasonCategory() { return withdrawalReasonCategory; } public void setWithdrawalReasonCategory(DisputeReason v) { this.withdrawalReasonCategory = v; }
 
     public enum QuoteStatus { pending, accepted, rejected, withdrawn }
 }
