@@ -1,5 +1,6 @@
 package com.flyship.service;
 
+import com.flyship.entity.DisputeReason;
 import com.flyship.entity.Notification;
 import com.flyship.entity.Quote;
 import com.flyship.entity.Shipment;
@@ -128,5 +129,24 @@ class QuoteServiceTest {
                 eq(new BigDecimal("75.00")), eq("USD"));
         verify(emailService, never()).sendNewQuoteNotification(any(), any(), any(), any(), any(), any());
         verify(notificationService).create(eq(3L), eq(Notification.NotificationType.quote_accepted), any(), any(), eq(10L));
+    }
+
+    @Test
+    void withdrawQuote_storesCategorizedReasonAndOptionalDetail() {
+        Quote quote = new Quote();
+        quote.setId(200L);
+        quote.setShipmentId(10L);
+        quote.setTravelerId(3L);
+        quote.setAmount(new BigDecimal("75.00"));
+        quote.setCurrency("USD");
+        quote.setStatus(Quote.QuoteStatus.pending);
+
+        when(quoteRepository.findById(200L)).thenReturn(Optional.of(quote));
+
+        quoteService.withdrawQuote(200L, 3L, DisputeReason.found_alternative, "Found a cheaper traveler");
+
+        assertEquals(Quote.QuoteStatus.withdrawn, quote.getStatus());
+        assertEquals(DisputeReason.found_alternative, quote.getWithdrawalReasonCategory());
+        assertEquals("Found a cheaper traveler", quote.getWithdrawalReason());
     }
 }

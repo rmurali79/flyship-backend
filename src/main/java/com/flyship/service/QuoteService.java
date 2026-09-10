@@ -84,6 +84,7 @@ public class QuoteService {
             map.put("currency", q.getCurrency()); map.put("message", q.getMessage());
             map.put("delivery_date", q.getDeliveryDate()); map.put("status", q.getStatus());
             map.put("withdrawal_reason", q.getWithdrawalReason());
+            map.put("withdrawal_reason_category", q.getWithdrawalReasonCategory());
             map.put("createdAt", q.getCreatedAt()); map.put("updatedAt", q.getUpdatedAt());
             User traveler = travelersById.get(q.getTravelerId());
             if (traveler != null) {
@@ -152,7 +153,7 @@ public class QuoteService {
     }
 
     @Transactional
-    public Map<String, Object> withdrawQuote(Long quoteId, Long travelerId, String reason) {
+    public Map<String, Object> withdrawQuote(Long quoteId, Long travelerId, DisputeReason reasonCategory, String reasonDetail) {
         Quote quote = quoteRepository.findById(quoteId)
                 .orElseThrow(() -> new RuntimeException("Quote not found"));
         if (!quote.getTravelerId().equals(travelerId)) throw new RuntimeException("Unauthorized");
@@ -169,7 +170,8 @@ public class QuoteService {
                 LockType.quote_collateral, quote.getId());
 
         quote.setStatus(QuoteStatus.withdrawn);
-        quote.setWithdrawalReason(reason);
+        quote.setWithdrawalReasonCategory(reasonCategory);
+        quote.setWithdrawalReason(reasonDetail);
         quoteRepository.save(quote);
 
         if (wasAccepted) {
