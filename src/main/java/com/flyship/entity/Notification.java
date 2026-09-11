@@ -11,7 +11,7 @@ public class Notification {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @JsonProperty("user_id") @Column(name = "user_id", nullable = false) private Long userId;
-    @Enumerated(EnumType.STRING) @Column(nullable = false) private NotificationType type;
+    @Enumerated(EnumType.STRING) @Column(nullable = false, columnDefinition = "VARCHAR(40)") private NotificationType type;
     @Column(nullable = false) private String title;
     @Column(columnDefinition = "TEXT") private String message;
     @JsonProperty("shipment_id") @Column(name = "shipment_id") private Long shipmentId;
