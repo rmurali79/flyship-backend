@@ -36,6 +36,16 @@ public class DataSeeder implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
 
     private static final int DEMO_USER_COUNT = 10;
+
+    // Display names for the demo accounts shipper1..10@flyship.test and traveler1..10@flyship.test.
+    static final String[] DEMO_SHIPPER_NAMES = {
+            "Shiloh Vance", "Shira Montgomery", "Shirley Bennett", "Shiza Rahman", "Shiva Patel",
+            "Shields Mercer", "Shino Takahashi", "Shiori Yamashita", "Shianne Crawford", "Shinichi Tanaka"
+    };
+    static final String[] DEMO_TRAVELER_NAMES = {
+            "Travis Hayes", "Trace Sterling", "Trenton Vance", "Tracie Holloway", "Tracey Bennett",
+            "Trashawn Mercer", "Travis Brooks", "Trang Nguyen", "Trayvon Miller", "Trathan Ross"
+    };
     private static final String PICSUM_PREFIX = "https://picsum.photos/";
 
     private static final String[] CITIES = {
@@ -183,9 +193,32 @@ public class DataSeeder implements CommandLineRunner {
         String hashed = passwordEncoder.encode("123456");
 
         for (int i = 1; i <= DEMO_USER_COUNT; i++) {
-            createUserIfMissing("shipper" + i + "@flyship.test", "Shipper " + i, User.UserRole.shipper, hashed);
-            createUserIfMissing("traveler" + i + "@flyship.test", "Traveler " + i, User.UserRole.traveler, hashed);
+            createUserIfMissing("shipper" + i + "@flyship.test", DEMO_SHIPPER_NAMES[i - 1], User.UserRole.shipper, hashed);
+            createUserIfMissing("traveler" + i + "@flyship.test", DEMO_TRAVELER_NAMES[i - 1], User.UserRole.traveler, hashed);
         }
+        renameDefaultDemoUsers();
+    }
+
+    /**
+     * Demo accounts were first seeded as "Shipper N" / "Traveler N". Give those the names above.
+     * Only an untouched default name is replaced, so a demo account someone renamed keeps its
+     * name, and once every account is renamed this changes nothing.
+     */
+    void renameDefaultDemoUsers() {
+        int renamed = 0;
+        for (int i = 1; i <= DEMO_USER_COUNT; i++) {
+            renamed += renameIfDefault("shipper" + i + "@flyship.test", "Shipper " + i, DEMO_SHIPPER_NAMES[i - 1]);
+            renamed += renameIfDefault("traveler" + i + "@flyship.test", "Traveler " + i, DEMO_TRAVELER_NAMES[i - 1]);
+        }
+        if (renamed > 0) log.info("Renamed {} demo users from their default names.", renamed);
+    }
+
+    private int renameIfDefault(String email, String defaultName, String newName) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null || !defaultName.equals(user.getName())) return 0;
+        user.setName(newName);
+        userRepository.save(user);
+        return 1;
     }
 
     private void createUserIfMissing(String email, String name, User.UserRole role, String hashedPassword) {
