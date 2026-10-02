@@ -34,7 +34,11 @@ public class UserController {
             long itemsShipped = 0;
             long tripsDone = 0;
 
-            if ("shipper".equals(role)) {
+            // "both" accounts get the shipper and the traveler figures.
+            boolean isShipper = "shipper".equals(role) || "both".equals(role);
+            boolean isTraveler = "traveler".equals(role) || "both".equals(role);
+
+            if (isShipper) {
                 // Total Spends: Sum of completed payments for my shipments
                 List<Payment> payments = paymentRepository.findByStatus("completed");
                 for (Payment p : payments) {
@@ -47,7 +51,8 @@ public class UserController {
                 // Items Shipped
                 itemsShipped = shipmentRepository.countByShipperIdAndStatus(userId, Shipment.ShipmentStatus.delivered);
 
-            } else if ("traveler".equals(role)) {
+            }
+            if (isTraveler) {
                 // Earnings: Sum of completed payments where quote traveler is me
                 List<Payment> payments = paymentRepository.findByStatus("completed");
                 for (Payment p : payments) {
