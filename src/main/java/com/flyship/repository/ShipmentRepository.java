@@ -12,4 +12,5 @@ public interface ShipmentRepository extends JpaRepository<Shipment, Long> {
     List<Shipment> findByOriginAndDestinationAndStatusAndReachLatestByGreaterThanEqual(
             String origin, String destination, ShipmentStatus status, LocalDate date);
     long countByShipperIdAndStatus(Long shipperId, ShipmentStatus status);
+    List<Shipment> findByPhotoUrlStartingWith(String prefix);
 }

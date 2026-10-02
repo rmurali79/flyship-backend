@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/shipments/{id}").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/city-images/**").permitAll()
+                        .requestMatchers("/item-images/**").permitAll()
                         .requestMatchers("/").permitAll()
                         .anyRequest().authenticated()
                 )
