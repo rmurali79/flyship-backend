@@ -253,7 +253,8 @@ public class ShipmentService {
         map.put("id", s.getId()); map.put("shipperId", s.getShipperId());
         map.put("origin", s.getOrigin()); map.put("destination", s.getDestination());
         map.put("details", s.getDetails()); map.put("item_description", s.getItemDescription());
-        map.put("photo_url", s.getPhotoUrl()); map.put("weight", s.getWeight());
+        map.put("photo_url", s.getPhotoUrl()); map.put("item_image_url", s.getItemImageUrl());
+        map.put("weight", s.getWeight());
         map.put("dimension_length", s.getDimensionLength()); map.put("dimension_width", s.getDimensionWidth());
         map.put("dimension_height", s.getDimensionHeight()); map.put("max_budget", s.getMaxBudget());
         map.put("shipment_arrangement", s.getShipmentArrangement());

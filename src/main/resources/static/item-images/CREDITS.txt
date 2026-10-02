@@ -1,0 +1,33 @@
+Item placeholder photos (Unsplash License, https://unsplash.com/license)
+
+laptop.jpg  Photo by Howard Bouchevereau on Unsplash, https://unsplash.com/photos/RSCirJ70NDM
+camera-gear.jpg  Photo by William Thomas on Unsplash, https://unsplash.com/photos/ny6tO4ItOEY
+documents-gifts.jpg  Photo by Patrick Perkins on Unsplash, https://unsplash.com/photos/1_uZC1xLJww
+electronics.jpg  Photo by TechieTech Tech on Unsplash, https://unsplash.com/photos/7vN0oHpl_RI
+handicrafts.jpg  Photo by Colin Watts on Unsplash, https://unsplash.com/photos/0H3uUUTNrtI
+books.jpg  Photo by Ed Robertson on Unsplash, https://unsplash.com/photos/eeSdJfLfx1A
+spices-textiles.jpg  Photo by Marion Botella on Unsplash, https://unsplash.com/photos/uaHShoIDGeo
+fashion.jpg  Photo by Towfiqu barbhuiya on Unsplash, https://unsplash.com/photos/998DibZwpIc
+watch.jpg  Photo by fatemeh zakeri on Unsplash, https://unsplash.com/photos/L_6OdCI8jSA
+medicines.jpg  Photo by Roberto Sorin on Unsplash, https://unsplash.com/photos/RS0-h_pyByk
+sports.jpg  Photo by Allison Saeng on Unsplash, https://unsplash.com/photos/VRqmHMYMq1c
+toys.jpg  Photo by Vanessa Bucceri on Unsplash, https://unsplash.com/photos/gDiRwIYAMA8
+artwork.jpg  Photo by Andrew Neel on Unsplash, https://unsplash.com/photos/acowe0pCVBg
+jewellery.jpg  Photo by PRAHANT STUDIO on Unsplash, https://unsplash.com/photos/wcM6IweGBmw
+perfume.jpg  Photo by Jessica Weiller on Unsplash, https://unsplash.com/photos/So4eFi-d1nc
+music-parts.jpg  Photo by Yucel M on Unsplash, https://unsplash.com/photos/ijTQD1iCcho
+laptop-accessories.jpg  Photo by Shagal Sajid on Unsplash, https://unsplash.com/photos/Ox7mSmsljkc
+snacks.jpg  Photo by Jeff Siepman on Unsplash, https://unsplash.com/photos/7cRBG4nQtKs
+stationery.jpg  Photo by Aaron Burden on Unsplash, https://unsplash.com/photos/xG8IQMqMITM
+baby.jpg  Photo by Aditya Saxena on Unsplash, https://unsplash.com/photos/BOhe4TSwiaQ
+tablet.jpg  Photo by s w on Unsplash, https://unsplash.com/photos/0cG_yQAdYIM
+invitations.jpg  Photo by Micah & Sammie Chaffin on Unsplash, https://unsplash.com/photos/oUhlJR1XajY
+headphones.jpg  Photo by C D-X on Unsplash, https://unsplash.com/photos/PDX_a_82obo
+shoes.jpg  Photo by Noah Smith on Unsplash, https://unsplash.com/photos/LkuH3Txi_gs
+auto-parts.jpg  Photo by José Pinto on Unsplash, https://unsplash.com/photos/yeMpSqF8Z-8
+documents.jpg  Photo by Valeria Reverdo on Unsplash, https://unsplash.com/photos/4dHLTZNNDAQ
+home-decor.jpg  Photo by Mathilde Langevin on Unsplash, https://unsplash.com/photos/WUrXahlyjBo
+skincare.jpg  Photo by pmv chamara on Unsplash, https://unsplash.com/photos/sCFL6R7loQk
+board-game.jpg  Photo by Nik Korba on Unsplash, https://unsplash.com/photos/3WceTBlUoMs
+drone.jpg  Photo by Jared Brashier on Unsplash, https://unsplash.com/photos/duNHkmSkW6M
+parcel.jpg  Photo by Giorgio Trovato on Unsplash, https://unsplash.com/photos/bYhDEWgqYLM

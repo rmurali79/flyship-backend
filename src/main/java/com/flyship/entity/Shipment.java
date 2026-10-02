@@ -2,6 +2,7 @@ package com.flyship.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.flyship.util.ItemImages;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -53,6 +54,9 @@ public class Shipment {
     public String getDetails() { return details; } public void setDetails(String details) { this.details = details; }
     public String getItemDescription() { return itemDescription; } public void setItemDescription(String v) { this.itemDescription = v; }
     public String getPhotoUrl() { return photoUrl; } public void setPhotoUrl(String v) { this.photoUrl = v; }
+    /** Illustrative stock photo matched to the item description, shown when there's no usable photo. */
+    @JsonProperty("item_image_url") @Transient
+    public String getItemImageUrl() { return ItemImages.forDescription(itemDescription); }
     public BigDecimal getWeight() { return weight; } public void setWeight(BigDecimal v) { this.weight = v; }
     public BigDecimal getDimensionLength() { return dimensionLength; } public void setDimensionLength(BigDecimal v) { this.dimensionLength = v; }
     public BigDecimal getDimensionWidth() { return dimensionWidth; } public void setDimensionWidth(BigDecimal v) { this.dimensionWidth = v; }

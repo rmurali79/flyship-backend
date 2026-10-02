@@ -14,6 +14,7 @@ import com.flyship.repository.ShipmentRepository;
 import com.flyship.repository.TravelPlanRepository;
 import com.flyship.repository.UserRepository;
 import com.flyship.repository.WalletRepository;
+import com.flyship.util.ItemImages;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ public class DataSeeder implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(DataSeeder.class);
 
     private static final int DEMO_USER_COUNT = 10;
+    private static final String PICSUM_PREFIX = "https://picsum.photos/";
 
     private static final String[] CITIES = {
             "New York", "London", "Singapore", "Tokyo", "Paris",
@@ -160,6 +162,21 @@ public class DataSeeder implements CommandLineRunner {
         if (shipmentRepository.count() == 0) {
             seedDemoShipments();
         }
+
+        replaceRandomDemoPhotos();
+    }
+
+    /**
+     * Older demo seeds used random picsum.photos images that had nothing to do with the item.
+     * Swap those for a photo matched to the item description. Photos uploaded by real users
+     * are left alone, and once nothing points at picsum this is a no-op.
+     */
+    private void replaceRandomDemoPhotos() {
+        List<Shipment> stale = shipmentRepository.findByPhotoUrlStartingWith(PICSUM_PREFIX);
+        if (stale.isEmpty()) return;
+        stale.forEach(s -> s.setPhotoUrl(ItemImages.forDescription(s.getItemDescription())));
+        shipmentRepository.saveAll(stale);
+        log.info("Replaced {} random demo shipment photos with item-matched images.", stale.size());
     }
 
     private void seedTestUsers() {
@@ -438,7 +455,7 @@ public class DataSeeder implements CommandLineRunner {
         shipment.setDetails(item[1]);
         shipment.setWeight(weight);
         shipment.setMaxBudget(maxBudget);
-        shipment.setPhotoUrl("https://picsum.photos/seed/flyship-" + itemCursor + "/400/300");
+        shipment.setPhotoUrl(ItemImages.forDescription(item[0]));
 
         boolean needsCollection = rnd.nextBoolean();
         shipment.setShipmentArrangement(needsCollection
