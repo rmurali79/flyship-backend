@@ -79,4 +79,22 @@ class EmailServiceTest {
 
         assertFalse(result);
     }
+
+    @Test
+    void notificationsAreBrandedPeerPost() throws Exception {
+        org.mockito.ArgumentCaptor<MimeMessage> sent = org.mockito.ArgumentCaptor.forClass(MimeMessage.class);
+        emailService.sendShipmentStatusChangeNotification("shipper@example.com", 7L, "Berlin", "Chennai", "delivered");
+        verify(mailSender).send(sent.capture());
+
+        MimeMessage message = sent.getValue();
+        message.saveChanges();
+        jakarta.mail.internet.InternetAddress from = (jakarta.mail.internet.InternetAddress) message.getFrom()[0];
+        org.junit.jupiter.api.Assertions.assertEquals("PeerPost", from.getPersonal());
+        org.junit.jupiter.api.Assertions.assertEquals("no-reply@peerpost.online", from.getAddress());
+        java.io.ByteArrayOutputStream raw = new java.io.ByteArrayOutputStream();
+        message.writeTo(raw);
+        String body = raw.toString(java.nio.charset.StandardCharsets.UTF_8);
+        org.junit.jupiter.api.Assertions.assertTrue(body.contains("Log in to PeerPost"), body);
+        org.junit.jupiter.api.Assertions.assertFalse(body.contains("FlyShip"), body);
+    }
 }
